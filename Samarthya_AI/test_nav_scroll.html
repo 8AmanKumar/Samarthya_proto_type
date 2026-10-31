@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head><title>Nav Scroll Test</title></head>
+<body>
+<iframe id="appFrame" src="/" style="width:1600px; height:900px; border:none;"></iframe>
+<pre id="results">Running tests...</pre>
+<script>
+  window.addEventListener('load', () => {
+    const frame = document.getElementById('appFrame');
+    frame.onload = async () => {
+      const fwin = frame.contentWindow;
+      const fdoc = frame.contentDocument;
+      await new Promise(r => setTimeout(r, 800));
+
+      const res = {};
+      const header = fdoc.getElementById('mainHeader');
+      const links = Array.from(fdoc.querySelectorAll('#navSectionsMenu a'));
+      function getActiveTab() {
+        const a = links.find(l => l.classList.contains('active'));
+        return a ? a.innerText.trim().replace(/\s+/g, ' ') : null;
+      }
+
+      // Test 1: At top
+      fwin.scrollTo(0, 0);
+      fwin.dispatchEvent(new Event('scroll'));
+      await new Promise(r => setTimeout(r, 150));
+      res.test1_top = {
+        isScrolled: header ? header.classList.contains('nav-scrolled') : false,
+        activeTab: getActiveTab()
+      };
+
+      // Test 2: Scrolled past 40px
+      fwin.scrollTo(0, 300);
+      fwin.dispatchEvent(new Event('scroll'));
+      await new Promise(r => setTimeout(r, 150));
+      res.test2_scrolled_300 = {
+        isScrolled: header ? header.classList.contains('nav-scrolled') : false,
+        activeTab: getActiveTab()
+      };
+
+      // Test 3: Scroll to section-02
+      const sec2 = fdoc.getElementById('section-02');
+      if (sec2) {
+        sec2.scrollIntoView();
+        fwin.dispatchEvent(new Event('scroll'));
+        await new Promise(r => setTimeout(r, 250));
+        res.test3_sec2 = {
+          isScrolled: header ? header.classList.contains('nav-scrolled') : false,
+          activeTab: getActiveTab()
+        };
+      }
+
+      // Test 4: Click link for section-03
+      const link3 = links.find(l => l.getAttribute('href') === '#section-03');
+      if (link3) {
+        link3.click();
+        await new Promise(r => setTimeout(r, 300));
+        res.test4_clickSec3 = {
+          activeTab: getActiveTab()
+        };
+      }
+
+      document.getElementById('results').innerText = JSON.stringify(res, null, 2);
+    };
+  });
+</script>
+</body>
+</html>
